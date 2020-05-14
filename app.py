@@ -1,8 +1,16 @@
+from math import fabs, tan
+
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
+from flask_injector import FlaskInjector
+from injector import inject
 
+from models import service, parser
 from config import Config
+from models.adapter_parser import AdapterPolygon
+from dependencies import configure
+from models.service import Meters
 
 app = Flask(__name__)
 app.secret_key = "Secret Key"
@@ -15,15 +23,17 @@ migrate = Migrate(app, db)
 class Data(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
-    x = db.Column(db.String(100))
-    y = db.Column(db.String(100))
+    x = db.Column(db.Integer)
+    y = db.Column(db.Integer)
+    n = db.Column(db.Integer)
     length = db.Column(db.Integer)
     square = db.Column(db.Integer)
 
-    def __init__(self, name, x, y, length, square=0):
+    def __init__(self, name, x, y, number_side, length, square=0):
         self.name = name
         self.x = x
         self.y = y
+        self.n = number_side
         self.length = length
         self.square = square
 
@@ -36,16 +46,29 @@ def index():
 
 
 # this route is for inserting data to mysql database via html forms
+@inject
 @app.route('/insert', methods=['POST'])
-def insert():
+def insert(parser: parser.Parser):
     if request.method == 'POST':
-        name = request.form['name']
-        length = int(request.form['length'])
-        x = int(request.form['x'])
-        y = int(request.form['y'])
-        square = x * y * length
+        if request.args.get('str_param') != 1:
+            name = request.form['name']
+            length = int(request.form['length'])
+            x = int(request.form['x'])
+            y = int(request.form['y'])
+            n = int(request.form['number_side'])
+            square = n * length ** 2 / 4.0 * fabs(tan(180 / float(n)))
 
-        my_data = Data(name, length, x, y, square)
+            my_data = Data(name=name,number_side=n, length=length, x=x, y=y, square=square)
+        else:
+            args_string = request.form['str_param']
+            calculator = service.CalculateService()
+            adapter = AdapterPolygon(parser)
+            adapter.add_observer(calculator)
+            model = adapter.get_polygon(args_string)
+            square = Meters(calculator).calculate()
+            my_data = Data(name=model.get_type(), y=model.get_y(), x=model.get_x(), number_side=model.get_n, length=model.get_side,
+                           square=square)
+
         db.session.add(my_data)
         db.session.commit()
 
@@ -64,7 +87,8 @@ def update():
         my_data.length = int(request.form['length'])
         my_data.x = int(request.form['x'])
         my_data.y = int(request.form['y'])
-        my_data.square = my_data.x * my_data.y * my_data.length
+        my_data.n = int(request.form['number_side'])
+        my_data.square = my_data.n * my_data.length ** 2 / 4.0 * fabs(tan(180 / float(my_data.n)))
 
         db.session.commit()
         flash("Employee Updated Successfully")
@@ -83,5 +107,6 @@ def delete(id):
     return redirect(url_for('index'))
 
 
+FlaskInjector(app=app, modules=[configure])
 if __name__ == "__main__":
     app.run(debug=True)

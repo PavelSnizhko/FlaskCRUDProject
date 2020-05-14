@@ -16,7 +16,8 @@
             <div class="jumbotron p-3">
 
                 <h2>Calculate <b>Polygons </b>  <button type="button"  class="btn btn-success float-right"
-                data-toggle="modal" data-target="#mymodal">Add New Polygons</button> </h2>
+                data-toggle="modal" data-target="#mymodal">Add New Polygons</button>  <button type="button"  class="btn btn-danger float-right"
+                data-toggle="modal" data-target="#mymodal_1">Add New Polygons by String</button></h2>
 
 
                 {% with messages = get_flashed_messages() %}
@@ -54,6 +55,7 @@
                         <th>Name</th>
                         <th>x</th>
                         <th>y</th>
+                        <th>Number side</th>
                         <th>Length</th>
                         <th>Square</th>
 
@@ -66,6 +68,7 @@
                         <td>{{row.name}}</td>
                         <td>{{row.x}}</td>
                         <td>{{row.y}}</td>
+                         <td>{{row.n}}</td>
                         <td>{{row.length}}</td>
                         <td>{{row.square}}</td>
 
@@ -149,6 +152,18 @@
                  <div class="form-group">
 
 
+                  <label>Number side:</label>
+
+                  <input type="text" class="form-control" name="number_side" value="{{row.n}}">
+
+
+               </div>
+
+
+
+                 <div class="form-group">
+
+
                   <label>Square:</label>
 
                   <input type="text" class="form-control" name="square" value="{{row.square}}">
@@ -207,7 +222,7 @@
       <div class="modal-content">
          <div class="modal-header">
 
-            <h4 class="modal-title">Add Employee</h4>
+            <h4 class="modal-title">Add Polygon</h4>
          </div>
          <div class="modal-body">
 
@@ -232,6 +247,15 @@
 
                </div>
 
+                 <div class="form-group">
+
+
+                  <label>Number of side:</label>
+                  <input type="number" class="form-control" name="number_side" required="1">
+
+
+               </div>
+
 
                 <div class="form-group">
 
@@ -250,7 +274,7 @@
                <div class="form-group">
 
 
-                  <button class="btn btn-primary" type="submit">Add Employee</button>
+                  <button class="btn btn-primary" type="submit">Calculate the polygon</button>
 
 
                </div>
@@ -278,6 +302,59 @@
 
 
 </div>
+<div id="mymodal_1" class="modal fade" role="dialog">
+   <div class="modal-dialog">
+      <div class="modal-content">
+         <div class="modal-header">
+
+            <h4 class="modal-title">Add Employee</h4>
+         </div>
+         <div class="modal-body">
+
+            <form action="{{url_for('insert')}}" method="POST">
+
+
+               <div class="form-group">
+
+                  <label>String of parameters :</label>
+                  <input type="text" class="form-control" name="str_param" required="1">
+
+
+               </div>
+
+
+               <div class="form-group">
+
+
+                  <button class="btn btn-primary" type="submit">Calculate the polygon</button>
+
+
+               </div>
+
+
+            </form>
+
+
+         </div>
+
+
+         <div class="modal-footer">
+
+
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+
+
+         </div>
+
+
+      </div>
+
+
+   </div>
+
+
+</div>
+
 
 
 
